@@ -1,27 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-    <title>Contact</title>
+    <title>Contact | Simi Chavda</title>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/nav.css">
     <link rel="stylesheet" href="css/contact.css">
-    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <script src="js/script.js"></script>
-    
 
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Slabo+27px&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Nanum+Myeongjo&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 </head>
-
-
 
 <body>
     <header>
@@ -38,54 +32,54 @@
         </nav>
     </header>
 
-    
-   
-
-
     <section id="about-me" class="about-me">
         <div class="contact-container">
             <div class="contact-form">
                 <h2>Get in Touch</h2>
-                <form method="POST" action="/send-email">
-                  <label for="name">Name:</label>
-                  <input type="text" id="name" name="name" required>
-                  
-                  <label for="email">Email:</label>
-                  <input type="email" id="email" name="email" required>
-                  
-                  <label for="message">Message:</label>
-                  <textarea id="message" name="message" required></textarea>
-                  
-                  <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                <form action="https://formspree.io/f/xzdjzbop" method="POST">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" placeholder="Your Name" required>
 
-                  <button type="submit">SEND</button>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="email@example.com" required>
+
+                    <label for="message">Message:</label>
+                    <textarea id="message" name="message" rows="5" placeholder="How can I help you?" required></textarea>
+
+                    <input type="text" name="_gotcha" style="display:none">
+
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+
+                    <button type="submit">SEND MESSAGE</button>
                 </form>
                 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
             </div>
-              
+
             <div class="contact-details">
                 <h2>Contact Details</h2>
-                <p><strong>Email:</strong> simi-chavda@hotmail.co.uk</p>
-                <p><strong>Buckinghamshire, England</strong></p>
+                <p><strong>Email:</strong> <a href="mailto:simi-chavda@hotmail.co.uk" style="color: inherit; text-decoration: none;">simi-chavda@hotmail.co.uk</a></p>
+                <p><strong>Location:</strong> Buckinghamshire, England</p>
                 <ul class="social-links">
-                  <li><a href="https://www.linkedin.com/in/simi-chavda-56b835235/">LinkedIn</a> <a href="#">GitHub</a></li>
+                    <li>
+                        <a href="https://www.linkedin.com/in/simi-chavda-56b835235/" target="_blank">LinkedIn</a> |
+                        <a href="https://github.com/your-username" target="_blank">GitHub</a>
+                    </li>
                 </ul>
             </div>
         </div>
     </section>
 
     <button id="back-to-top" class="material-symbols-outlined">arrow_upward</button>
-    
+
     <footer>
         <div class="footer-info">
             <p>&copy; 2025 Simi Chavda. All rights reserved.</p>
-            <p>Follow me on:
+            <p>
+                Follow me on:
                 <a href="https://github.com" target="_blank">GitHub</a> |
                 <a href="https://linkedin.com" target="_blank">LinkedIn</a>
             </p>
         </div>
     </footer>
-
 </body>
-
 </html>
