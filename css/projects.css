@@ -29,7 +29,8 @@ main h2 {
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     padding: 60px;
-    padding-top: 150px;
+    margin-top: 400px;
+    padding-top: 325px;
     padding-bottom: 0px;
 }
 
@@ -130,3 +131,4 @@ body h5 {
     }
 
 }
+
