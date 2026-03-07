@@ -1,0 +1,268 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
+
+html {
+    scroll-behavior: smooth; 
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+:root {
+    --background-light: #c8bdb4;
+    --background-dark: #0d1224;
+    --text-light: #20306a;
+    --text-dark: #c8bdb4;
+    --text-inverse-light: #f5f5f5;
+    --text-inverse-dark: #474747;
+
+    --background: var(--background-light);
+    --nav: var(--nav-light);
+    --text: var(--text-light);
+    --text-inverse: var(--text-inverse-light);
+}
+
+:root.dark {
+    --background: var(--background-dark);
+    --nav: var(--nav-dark);
+    --text: var(--text-dark);
+    --text-inverse: var(--text-inverse-dark);
+}
+
+
+.material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 0, 
+        'wght' 300, 
+        'GRAD' 0, 
+}
+    
+
+body {
+    background-color: var(--background);
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 80vw;
+    height: 75vh;
+    margin: auto;
+    border-radius: 8px;
+    text-align: center;
+}
+
+    main h1 {
+        font-size: 90px;
+        color: var(--text);
+        font-family: "Racing Sans One", sans-serif;
+        font-weight: 100;
+        margin-bottom: -35px;
+        padding-right: 25px
+    }
+
+    .typing-animation {
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden; 
+        border-right: 9px solid #fd5294; 
+        animation: typing 3s steps(30, end), smooth-blink 1.2s infinite 3s; 
+
+    }
+    
+    @keyframes typing {
+        from { width: 0; }
+        to { width: 550px; }
+    }
+    
+
+    @keyframes smooth-blink {
+        0%, 100% { opacity: 1; } 
+        50% { border-color: transparent; }
+    }
+    
+    
+
+    main h2 {
+        font-size: 24px;
+        color: var(--text);
+        font-weight: 10;
+        margin-top: 5px;
+    }
+
+    main h3 {
+        font-size: 20px;
+        color: var(--text);
+        font-weight: 10;
+        margin-top: 20px;
+        width: 700px;
+        line-height: 35px;
+    }
+
+    #mail-button .material-symbols-outlined {
+        font-size: 34px;
+        margin-right: 3px;
+        vertical-align: middle;
+    }
+
+    main h4 {
+        font-size: 25px;
+        margin-top: 50px;
+        padding: 10px;
+    }
+
+    main h4 a {
+        text-decoration: none;
+        color: #fd5294;
+        padding: 13px;
+        border: 1px solid #fd5294;
+        border-radius: 7px;
+    }
+
+    main h4 a:hover {
+        text-decoration: none;
+        color: var(--text);
+        border-color: var(--text);
+        transition-duration: 0.5s;
+    }
+
+.about-me {
+    background: rgba(0, 0, 0, 0.2); 
+    color: var(--text);
+    padding: 2rem;
+    text-align: center;
+}
+
+    .about-me h2 {
+        margin-top: 4rem;
+        margin-bottom: 3rem;
+        font-family: "Racing Sans One", sans-serif;
+        font-size: 70px;
+        font-weight: 100;
+    }
+
+    .about-me p {
+        font-size: 1rem;
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .about-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .tab-button {
+        padding: 0.6rem 7.5%;
+        border: none;
+        border-radius: 5px;
+        background: #f77aaa;
+        color: white;
+        font-size: 1.25rem;
+        cursor: pointer;
+        font-family: "Racing Sans One", sans-serif;
+      }
+      
+      .tab-button:hover {
+        background: #f5478a;
+        transition-duration: 0.7s;
+      }
+      
+      .tab-button.active {
+        background: #f5478a;
+      }
+      
+      .tab-content {
+        display: none;
+        animation: fadeIn 0.5s ease;
+
+      }
+      
+      .tab-content.active {
+        display: block;
+      }
+      
+      .tab-content h3 {
+        margin-bottom: 0.5rem;
+        color: var(--text);
+      }
+      
+      .tab-content ul {
+        list-style-type: none;
+        padding: 0;
+        margin-top: 50px;
+      }
+      
+      .tab-content ul li {
+        background: var(--background);
+        margin: auto;
+        margin-bottom: 18px;
+        padding: 2rem;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 800px;
+      }
+
+#back-to-top {
+    position: fixed;           
+    bottom: 20px;
+    right: 20px;  
+    background-color: #ff76a6;
+    color: #ffffff;
+    border: none;
+    padding: 15px;
+    font-size: 24px;
+    border-radius: 50%;
+    display: none;
+    cursor: pointer;
+}
+    
+    #back-to-top:hover {
+        background-color: #f94084;
+        transition-duration: 0.7s;
+    }
+
+
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+    .menu-toggle span {
+        width: 25px;
+        height: 3px;
+        background: #fff;
+        margin: 4px;
+    }
+
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+    }
+
+        .nav-links.active {
+            display: flex;
+        }
+
+    .menu-toggle {
+        display: flex;
+    }
+}
+
