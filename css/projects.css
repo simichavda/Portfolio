@@ -5,7 +5,6 @@
     left: 0;
     right: 0;
     z-index: 1000;
-    background-color: #0d1224;
     width: 100%; 
 }
 
@@ -129,4 +128,5 @@ body h5 {
     .project-container {
         margin-top: 800px;
     }
+
 }
