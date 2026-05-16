@@ -38,6 +38,8 @@ header {
         text-decoration: none;
         padding: 0.5rem;
         display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     #appearance-button.material-symbols-outlined {
@@ -74,4 +76,32 @@ footer {
         
 .footer-info a:hover {
     color: #fff;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0.5rem;
+    }
+
+    .logo {
+        display: none;
+    }
+
+    .nav-links li {
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .nav-links a {
+        padding: 0.5rem;
+        justify-content: center;
+    }
+
+    .nav-text {
+        display: none;
+    }
+
+    .nav-links .material-symbols-outlined {
+        font-size: 24px;
+    }
 }
