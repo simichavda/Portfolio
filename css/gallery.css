@@ -17,14 +17,14 @@
     .about-me h2 {
         margin-top: 34px;
         margin-bottom: 40px;
-        color: #b0a399; /* Matching your theme */
+        color: var(--text);
     }
 
 /* Tabs */
 .about-tabs {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 5px;
     flex-wrap: wrap;
     margin-bottom: 20px;
 }
@@ -136,7 +136,7 @@
         font-family: "Racing Sans One", sans-serif;
         font-weight: 100;
         margin-bottom: 10px;
-        color: #17275e;
+        color: var(--text);
     }
 
     .project-desc p {
@@ -146,3 +146,58 @@
         max-width: 600px;
         margin: 0 auto;
     }
+
+@media (max-width: 768px) {
+
+    .carousel-container {
+        flex-direction: column;
+        gap: 10px;
+        min-height: auto;
+    }
+
+    .carousel-view.landscape {
+        width: 90vw;
+        aspect-ratio: 16 / 10;
+    }
+
+    .carousel-view.portrait {
+        width: 90vw;
+        aspect-ratio: 9 / 16;
+    }
+
+    .prev-btn, .next-btn {
+        font-size: 2rem;
+    }
+
+    .about-me h2 {
+        font-size: 32px;
+        max-width: fit-content;
+    }
+
+    @keyframes typing {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 300px;
+    }
+}
+
+    .project-desc h3 {
+        font-size: 28px;
+    }
+
+    .project-desc p {
+        max-width: 90vw;
+    }
+
+    .about-tabs {
+        gap: 10px;
+    }
+
+    .tab-button {
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+    }
+}
