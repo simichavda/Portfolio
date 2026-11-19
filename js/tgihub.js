@@ -27,7 +27,10 @@ const INFO = [
   { name: "Allergy Tablet", value: "0642" },
   { name: "Table Talk", value: "HighFD!23" },
   { name: "Resdiary Login", value: "Fridays#1" },
-  { name: "Deliveroo Manager", value: "Fridays#11" }
+  { name: "UberEats Manager", value: "Fridays#1" },
+  { name: "Deliveroo Manager", value: "Fridays#11" },
+  { name: "Expo Login", value: "2026" },
+  { name: "Logit Login", value: "Fridays642!" }
 ];
 
 const KEY = "manager-hub-v1";
