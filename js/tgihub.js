@@ -98,6 +98,7 @@ function halfCard(title, desc, url, icon) {
 function viewHub() {
   return `<h2>Today’s hub</h2>
   <p class="sub">${new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</p>
+  ${metricsHTML()}
   <div class="cards">
     <a class="card wide" href="#checklist">${ico("checklist")}<div><h3>Manager checklist</h3><p>personal checklist for daily tasks</p></div></a>
     ${linkCard("Logit check", "daily Logit checks", LINKS.logit, "logit")}
@@ -209,6 +210,113 @@ async function copyText(text, btn) {
   setTimeout(() => { btn.textContent = old; }, 1200);
 }
 
+// ===== Key metrics (read from data/metrics.csv: ASPH, Sales, Covers, Date) =====
+const METRICS_URL = "data/metrics.csv";
+const METRICS_KEY = "manager-hub-metrics-csv";
+let metricsMap = null;      // date (YYYY-MM-DD) -> { asph, sales, covers }
+let metricsSource = "none"; // "file" = read from the CSV, "cache"/"picked" = remembered copy, "none" = nothing yet
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cur = "", q = false;
+  text = text.replace(/^\uFEFF/, "");
+  const endRow = () => { row.push(cur); cur = ""; if (row.some(x => x.trim() !== "")) rows.push(row); row = []; };
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; endRow(); }
+    else cur += c;
+  }
+  endRow();
+  return rows;
+}
+function parseDateKey(s) {
+  s = String(s || "").trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return m[1] + "-" + pad(+m[2]) + "-" + pad(+m[3]);
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/); // UK style day/month/year, as Excel saves it
+  return m ? m[3] + "-" + pad(+m[2]) + "-" + pad(+m[1]) : null;
+}
+function parseNum(s) {
+  const n = parseFloat(String(s || "").replace(/[£,\s]/g, ""));
+  return isNaN(n) ? null : n;
+}
+function ingestMetrics(text, source) {
+  const rows = parseCSV(text);
+  if (!rows.length) return;
+  const head = rows[0].map(x => x.trim().toLowerCase());
+  const hasHead = head.includes("date") || head.includes("asph");
+  const col = (name, fallback) => { const i = head.indexOf(name); return hasHead && i >= 0 ? i : fallback; };
+  const iA = col("asph", 0), iS = col("sales", 1), iC = col("covers", 2), iD = col("date", 3);
+  const map = {};
+  rows.slice(hasHead ? 1 : 0).forEach(r => {
+    const k = parseDateKey(r[iD]);
+    if (k) map[k] = { asph: parseNum(r[iA]), sales: parseNum(r[iS]), covers: parseNum(r[iC]) };
+  });
+  metricsMap = map;
+  metricsSource = source;
+}
+async function loadMetrics() {
+  try {
+    const r = await fetch(METRICS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const text = await r.text();
+    ingestMetrics(text, "file");
+    try { localStorage.setItem(METRICS_KEY, text); } catch (e) {}
+  } catch (e) {
+    if (metricsSource !== "file") {
+      let cached = null;
+      try { cached = localStorage.getItem(METRICS_KEY); } catch (_) {}
+      if (cached) ingestMetrics(cached, "cache");
+    }
+  }
+  if (!location.hash.replace("#", "")) render();
+}
+function pickMetricsFile() {
+  const f = document.createElement("input");
+  f.type = "file";
+  f.accept = ".csv,text/csv";
+  f.onchange = () => {
+    const file = f.files[0];
+    if (!file) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const text = String(rd.result);
+      ingestMetrics(text, "picked");
+      try { localStorage.setItem(METRICS_KEY, text); } catch (e) {}
+      if (!location.hash.replace("#", "")) render();
+    };
+    rd.readAsText(file);
+  };
+  f.click();
+}
+function metricsHTML() {
+  const m = metricsMap && metricsMap[dkey(new Date())];
+  const gbp2 = v => v == null ? "—" : "£" + v.toFixed(2);
+  const gbp0 = v => v == null ? "—" : "£" + Math.round(v).toLocaleString("en-GB");
+  const num = v => v == null ? "—" : Math.round(v).toLocaleString("en-GB");
+  let note = "";
+  if (metricsSource !== "file") {
+    note = (metricsSource === "none"
+      ? "Couldn’t read data/metrics.csv automatically (browsers block this when a page is opened straight from a folder). "
+      : "Couldn’t read data/metrics.csv automatically, so these come from the last file you loaded. ")
+      + '<button class="ghost" data-act="loadcsv">Load metrics file</button>';
+  } else if (!m) {
+    note = "No figures for today in the CSV yet.";
+  }
+  return `<h3 class="subhead">Key Metrics and Targets</h3>
+  <div class="metrics">
+    <div class="card metric"><div class="lbl">ASPH</div><div class="val">${gbp2(m && m.asph)}</div></div>
+    <div class="card metric"><div class="lbl">Sales</div><div class="val">${gbp0(m && m.sales)}</div></div>
+    <div class="card metric"><div class="lbl">Covers</div><div class="val">${num(m && m.covers)}</div></div>
+  </div>
+  ${note ? `<p class="note metric-note">${note}</p>` : ""}`;
+}
+
 const app = document.getElementById("app");
 const home = document.getElementById("homeLink");
 
@@ -223,6 +331,7 @@ app.addEventListener("click", e => {
   if (!b) return;
   const a = b.dataset.act;
   if (a === "copy") { copyText(b.dataset.text, b); return; }
+  if (a === "loadcsv") { pickMetricsFile(); return; }
   if (a === "toggle") {
     (state.done[selected] = state.done[selected] || {})[b.dataset.id] = b.checked;
     save();
@@ -290,4 +399,11 @@ setInterval(() => {
   }
 }, 30000);
 
+// Footer year
+const yr = document.getElementById("year");
+if (yr) yr.textContent = new Date().getFullYear();
+
 render();
+loadMetrics();
+setInterval(loadMetrics, 5 * 60 * 1000); // pick up CSV edits every 5 minutes
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadMetrics(); });
