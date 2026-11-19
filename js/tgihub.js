@@ -106,8 +106,8 @@ function viewHub() {
     ${linkCard("Logit check", "daily Logit checks", LINKS.logit, "logit")}
     ${linkCard("Audit", "daily BOH audit form", LINKS.audit, "audit")}
     <div class="pair">
-      ${halfCard("Deliveroo refunds", "check this week’s refunds", LINKS.deliveroo, "deliveroo")}
-      ${halfCard("Uber Eats refunds", "check this week’s refunds", LINKS.ubereats, "ubereats")}
+      ${halfCard("Deliveroo Manager", "check this week’s refunds", LINKS.deliveroo, "deliveroo")}
+      ${halfCard("Uber Eats Manager", "check this week’s refunds", LINKS.ubereats, "ubereats")}
     </div>
     ${linkCard("Feedback", "check Table Talk reviews, sales leads and guest measures", LINKS.feedback, "feedback")}
     ${linkCard("ResDiary", "review bookings and open tables", LINKS.resdiary, "resdiary")}
