@@ -88,17 +88,17 @@ function viewHub() {
   <p class="sub">${new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</p>
   <div class="cards">
     <a class="card wide" href="#checklist">${ico("checklist")}<div><h3>Manager checklist</h3><p>Daily tasks, delivery checks and your calendar.</p></div></a>
-    ${linkCard("Logit check", "Open the Logit check website.", LINKS.logit, "logit")}
-    ${linkCard("Audit", "Open the audit form.", LINKS.audit, "audit")}
+    ${linkCard("Logit check", "daily Logit checks", LINKS.logit, "logit")}
+    ${linkCard("Audit", "daily BOH audit form", LINKS.audit, "audit")}
     <div class="pair">
-      ${halfCard("Deliveroo refunds", "Check this week’s refunds.", LINKS.deliveroo, "deliveroo")}
-      ${halfCard("Uber Eats refunds", "Check this week’s refunds.", LINKS.ubereats, "ubereats")}
+      ${halfCard("Deliveroo refunds", "check this week’s refunds", LINKS.deliveroo, "deliveroo")}
+      ${halfCard("Uber Eats refunds", "check this week’s refunds", LINKS.ubereats, "ubereats")}
     </div>
-    ${linkCard("Feedback", "Open the feedback flow.", LINKS.feedback, "feedback")}
-    ${linkCard("ResDiary", "Open the ResDiary login.", LINKS.resdiary, "resdiary")}
-    ${linkCard("Deliverect", "Open the Deliverect login.", LINKS.deliverect, "deliverect")}
-    ${linkCard("Tenkites menu recipes", "Open the digital recipe cards.", LINKS.tenkites, "tenkites")}
-    <a class="card tile" href="#codes-info-contacts">${ico("info")}<h3>Codes / info / contacts</h3><p>Handy codes, information and contact details.</p></a>
+    ${linkCard("Feedback", "check Table Talk reviews, sales leads and guest measures", LINKS.feedback, "feedback")}
+    ${linkCard("ResDiary", "review bookings and open tables", LINKS.resdiary, "resdiary")}
+    ${linkCard("Deliverect", "manage delivery items", LINKS.deliverect, "deliverect")}
+    ${linkCard("Tenkites menu recipes", "digital recipe cards", LINKS.tenkites, "tenkites")}
+    <a class="card tile" href="#codes-info-contacts">${ico("info")}<h3>Codes / info / contacts</h3><p>handy codes, information and contact details.</p></a>
   </div>`;
 }
 
