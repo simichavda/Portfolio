@@ -56,34 +56,26 @@ function statusOf(x) {
   return c >= s || c <= e ? "open" : "up"; // window that runs past midnight
 }
 
-function linkCard(title, desc, url) {
+function tile(title, url) {
   return url
-    ? `<a class="card" href="${esc(url)}" target="_blank" rel="noopener"><h3>${title}</h3><p>${desc}</p></a>`
-    : `<div class="card off"><h3>${title}</h3><p>${desc} Link not set yet.</p></div>`;
-}
-
-function halfCard(title, url) {
-  return url
-    ? `<a class="card half" href="${esc(url)}" target="_blank" rel="noopener"><h3>${title}</h3></a>`
-    : `<div class="card half off"><h3>${title}</h3></div>`;
+    ? `<a class="card tile" href="${esc(url)}" target="_blank" rel="noopener"><h3>${title}</h3></a>`
+    : `<div class="card tile off"><h3>${title}</h3></div>`;
 }
 
 function viewHub() {
   return `<h2>Today’s hub</h2>
   <p class="sub">${new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</p>
   <div class="cards">
-    ${linkCard("Logit check", "Open the Logit check website.", LINKS.logit)}
-    <a class="card" href="#checklist"><h3>Manager checklist</h3><p>Daily tasks, delivery checks and your calendar.</p></a>
-    ${linkCard("Audit", "Open the audit form.", LINKS.audit)}
-    ${linkCard("ResDiary", "Open the ResDiary login.", LINKS.resdiary)}
-    <div class="pair">
-      ${halfCard("Deliveroo refunds", LINKS.deliveroo)}
-      ${halfCard("Uber Eats refunds", LINKS.ubereats)}
-    </div>
-    ${linkCard("Tenkites menu recipes", "Open the digital recipe cards.", LINKS.tenkites)}
-    ${linkCard("Deliverect", "Open the Deliverect login.", LINKS.deliverect)}
-    ${linkCard("Feedback", "Open the feedback flow.", LINKS.feedback)}
-    <a class="card" href="#codes-info-contacts"><h3>Codes / info / contacts</h3><p>Handy codes, information and contact details.</p></a>
+    <a class="card wide" href="#checklist"><h3>Manager checklist</h3><p>Daily tasks, delivery checks and your calendar.</p></a>
+    ${tile("Logit check", LINKS.logit)}
+    ${tile("Audit", LINKS.audit)}
+    ${tile("Deliveroo refunds", LINKS.deliveroo)}
+    ${tile("Uber Eats refunds", LINKS.ubereats)}
+    ${tile("Feedback", LINKS.feedback)}
+    ${tile("ResDiary", LINKS.resdiary)}
+    ${tile("Deliverect", LINKS.deliverect)}
+    ${tile("Tenkites menu", LINKS.tenkites)}
+    <a class="card tile" href="#codes-info-contacts"><h3>Codes / info / contacts</h3></a>
   </div>`;
 }
 
