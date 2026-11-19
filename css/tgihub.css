@@ -54,7 +54,7 @@ p.sub { margin: 0 0 18px; color: var(--muted); }
 .lk { color: var(--red-bright); }
 
 /* Hub cards */
-.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
 .card {
   background: var(--card);
   border: 1px solid var(--line);
@@ -70,13 +70,31 @@ p.sub { margin: 0 0 18px; color: var(--muted); }
 a.card:hover, a.card:focus-visible { border-color: var(--red); outline: none; }
 .card.off { opacity: 0.6; }
 
-/* Hub tiles: phone = 2 per row, checklist full width */
-.card.wide { grid-column: 1 / -1; }
-.card.tile { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; }
-.card.tile h3 { margin: 0; font-size: 1rem; }
-@media (min-width: 700px) {
-  .cards { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .card.tile { aspect-ratio: 4 / 3; }
+/* Half-width pair of cards (Deliveroo and Uber Eats) on PC */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.card.half { padding: 12px 8px; display: flex; align-items: center; justify-content: center; text-align: center; }
+.card.half h3 { margin: 0; font-size: 0.95rem; }
+
+/* Icons (shown on PC and phone); half-card descriptions are phone only */
+.ico { display: block; width: 28px; height: 28px; flex: none; color: var(--red-bright); margin-bottom: 8px; }
+.ico svg { width: 100%; height: 100%; display: block; }
+.card.half { flex-direction: column; }
+
+/* Manager checklist is always one wide card across the full row */
+.card.wide { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; }
+.card.wide .ico { margin-bottom: 0; }
+.card.half .ico { width: 24px; height: 24px; margin-bottom: 6px; }
+.card.half p { display: none; }
+
+/* Phone only: checklist full width, everything else shorter tiles, 2 per row */
+@media (max-width: 699px) {
+  .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .pair { display: contents; }
+  .ico, .card.half .ico { width: 26px; height: 26px; margin-bottom: 0; }
+  .card.wide { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; }
+  .card.tile { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; padding: 12px 8px; min-height: 110px; }
+  .card.tile h3 { margin: 0; font-size: 0.95rem; }
+  .card.tile p { display: block; font-size: 0.78rem; line-height: 1.25; }
 }
 
 /* Panels and forms */
