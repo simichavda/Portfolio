@@ -19,6 +19,21 @@ const DEFAULT_TASKS = [
 ];
 // ================================
 
+// Codes / info page. Edit the rows below: name = left column, value = copyable right column.
+const USERNAME = "highwycombe@tgifridays.co.uk";
+const INFO = [
+  { name: "Set Alarm Code", value: "250681A" },
+  { name: "Allergy Tablet", value: "0642" },
+  { name: "Table Talk", value: "HighFD!23" },
+  { name: "Resdiary Login", value: "Fridays#1" },
+  { name: "Deliveroo Manager", value: "Fridays#11" },
+  { name: "f", value: "6" },
+  { name: "g", value: "7" },
+  { name: "h", value: "8" },
+  { name: "i", value: "9" },
+  { name: "j", value: "10" }
+];
+
 const KEY = "manager-hub-v1";
 let state = { tasks: [], done: {}, times: [] };
 try {
@@ -164,9 +179,36 @@ function viewTimes() {
 }
 
 function viewInfo() {
+  const rows = INFO.map(x => `<tr data-name="${esc(x.name.toLowerCase())}">
+      <td class="nm">${esc(x.name)}</td>
+      <td class="pw"><div class="pwcell"><span>${esc(x.value)}</span><button class="ghost" data-act="copy" data-text="${esc(x.value)}">Copy</button></div></td>
+    </tr>`).join("");
   return `<h2>Codes / info / contacts</h2>
   <p class="sub"><a class="lk" href="#">Back to hub</a></p>
-  <div class="panel"><p class="empty" style="margin:0">Nothing here yet. Codes, info and contacts will be added soon.</p></div>`;
+  <div class="panel user-row">
+    <div><span class="note">Username (used for most logins)</span><br><strong>${esc(USERNAME)}</strong></div>
+    <button data-act="copy" data-text="${esc(USERNAME)}">Copy username</button>
+  </div>
+  <div class="panel">
+    <input type="text" id="infoSearch" placeholder="Search codes and info" autocomplete="off" aria-label="Search codes and info" style="width:100%">
+    <table class="info"><tbody>${rows}</tbody></table>
+    <p class="empty" id="noMatch" hidden style="margin:12px 0 0">No matches.</p>
+  </div>`;
+}
+
+async function copyText(text, btn) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const t = document.createElement("textarea");
+    t.value = text; t.style.position = "fixed"; t.style.opacity = "0";
+    document.body.appendChild(t); t.select();
+    try { document.execCommand("copy"); } catch (_) {}
+    t.remove();
+  }
+  const old = btn.textContent;
+  btn.textContent = "Copied";
+  setTimeout(() => { btn.textContent = old; }, 1200);
 }
 
 const app = document.getElementById("app");
@@ -182,6 +224,7 @@ app.addEventListener("click", e => {
   const b = e.target.closest("[data-act]");
   if (!b) return;
   const a = b.dataset.act;
+  if (a === "copy") { copyText(b.dataset.text, b); return; }
   if (a === "toggle") {
     (state.done[selected] = state.done[selected] || {})[b.dataset.id] = b.checked;
     save();
@@ -218,6 +261,18 @@ app.addEventListener("keydown", e => {
     e.preventDefault();
     app.querySelector('[data-act="add"]').click();
   }
+});
+
+app.addEventListener("input", e => {
+  if (e.target.id !== "infoSearch") return;
+  const q = e.target.value.trim().toLowerCase();
+  let shown = 0;
+  app.querySelectorAll("tr[data-name]").forEach(r => {
+    const show = r.dataset.name.includes(q);
+    r.hidden = !show;
+    if (show) shown++;
+  });
+  document.getElementById("noMatch").hidden = shown > 0;
 });
 
 window.addEventListener("hashchange", render);
