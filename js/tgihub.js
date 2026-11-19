@@ -56,26 +56,49 @@ function statusOf(x) {
   return c >= s || c <= e ? "open" : "up"; // window that runs past midnight
 }
 
-function tile(title, url) {
+// Icons (phone layout only). Simple line icons, drawn inline so no internet is needed.
+const ICONS = {
+  checklist: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+  logit: '<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
+  audit: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/>',
+  deliveroo: '<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>',
+  ubereats: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  feedback: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  resdiary: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  deliverect: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+  tenkites: '<path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"/><path d="M6 17h12"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'
+};
+const ico = n => `<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg></span>`;
+
+function linkCard(title, desc, url, icon) {
   return url
-    ? `<a class="card tile" href="${esc(url)}" target="_blank" rel="noopener"><h3>${title}</h3></a>`
-    : `<div class="card tile off"><h3>${title}</h3></div>`;
+    ? `<a class="card tile" href="${esc(url)}" target="_blank" rel="noopener">${ico(icon)}<h3>${title}</h3><p>${desc}</p></a>`
+    : `<div class="card tile off">${ico(icon)}<h3>${title}</h3><p>${desc} Link not set yet.</p></div>`;
+}
+
+function halfCard(title, desc, url, icon) {
+  return url
+    ? `<a class="card half tile" href="${esc(url)}" target="_blank" rel="noopener">${ico(icon)}<h3>${title}</h3><p>${desc}</p></a>`
+    : `<div class="card half tile off">${ico(icon)}<h3>${title}</h3><p>${desc}</p></div>`;
 }
 
 function viewHub() {
   return `<h2>Today’s hub</h2>
   <p class="sub">${new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</p>
   <div class="cards">
-    <a class="card wide" href="#checklist"><h3>Manager checklist</h3><p>Daily tasks, delivery checks and your calendar.</p></a>
-    ${tile("Logit check", LINKS.logit)}
-    ${tile("Audit", LINKS.audit)}
-    ${tile("Deliveroo refunds", LINKS.deliveroo)}
-    ${tile("Uber Eats refunds", LINKS.ubereats)}
-    ${tile("Feedback", LINKS.feedback)}
-    ${tile("ResDiary", LINKS.resdiary)}
-    ${tile("Deliverect", LINKS.deliverect)}
-    ${tile("Tenkites menu", LINKS.tenkites)}
-    <a class="card tile" href="#codes-info-contacts"><h3>Codes / info / contacts</h3></a>
+    <a class="card wide" href="#checklist">${ico("checklist")}<div><h3>Manager checklist</h3><p>Daily tasks, delivery checks and your calendar.</p></div></a>
+    ${linkCard("Logit check", "Open the Logit check website.", LINKS.logit, "logit")}
+    ${linkCard("Audit", "Open the audit form.", LINKS.audit, "audit")}
+    <div class="pair">
+      ${halfCard("Deliveroo refunds", "Check this week’s refunds.", LINKS.deliveroo, "deliveroo")}
+      ${halfCard("Uber Eats refunds", "Check this week’s refunds.", LINKS.ubereats, "ubereats")}
+    </div>
+    ${linkCard("Feedback", "Open the feedback flow.", LINKS.feedback, "feedback")}
+    ${linkCard("ResDiary", "Open the ResDiary login.", LINKS.resdiary, "resdiary")}
+    ${linkCard("Deliverect", "Open the Deliverect login.", LINKS.deliverect, "deliverect")}
+    ${linkCard("Tenkites menu recipes", "Open the digital recipe cards.", LINKS.tenkites, "tenkites")}
+    <a class="card tile" href="#codes-info-contacts">${ico("info")}<h3>Codes / info / contacts</h3><p>Handy codes, information and contact details.</p></a>
   </div>`;
 }
 
