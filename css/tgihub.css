@@ -154,3 +154,21 @@ table.info tr:last-child td { border-bottom: 0; }
 table.info td.nm { width: 50%; font-weight: 600; word-break: break-word; }
 .pwcell { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .pwcell span { word-break: break-all; }
+
+/* Key metrics */
+.subhead { margin: 22px 0 10px; font-size: 1.05rem; }
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 8px; }
+.card.metric { text-align: center; }
+.metric .lbl { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase; }
+.metric .val { font-size: 1.8rem; font-weight: 700; margin-top: 4px; }
+.metric-note { margin: 0 0 8px; }
+.metric-note button { margin-left: 6px; }
+.cards { margin-top: 20px; }
+@media (max-width: 699px) {
+  .metrics { gap: 8px; }
+  .card.metric { padding: 12px 6px; }
+  .metric .val { font-size: 1.2rem; }
+}
+
+/* Footer */
+.foot { max-width: 900px; margin: 0 auto; padding: 16px; text-align: center; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--line); }
