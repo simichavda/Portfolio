@@ -70,6 +70,11 @@ p.sub { margin: 0 0 18px; color: var(--muted); }
 a.card:hover, a.card:focus-visible { border-color: var(--red); outline: none; }
 .card.off { opacity: 0.6; }
 
+/* Half-width pair of cards (Deliveroo and Uber Eats) */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.card.half { padding: 12px 8px; display: flex; align-items: center; justify-content: center; text-align: center; }
+.card.half h3 { margin: 0; font-size: 0.95rem; }
+
 /* Panels and forms */
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
