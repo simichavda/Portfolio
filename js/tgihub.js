@@ -7,7 +7,8 @@ const LINKS = {
   ubereats: "https://merchants.ubereats.com/manager/home/6e1851e4-9cd6-535f-8d0e-0b2d68997190?dateRange=this_week",
   tenkites: "https://menus.tenkites.com/tgifridayuk/digitalrecipecard02",
   deliverect: "https://deliverect-enterprise.eu.auth0.com/u/login?state=hKFo2SByRVBKckdMUnl0cl9kcHBrVExOc2ZSSUoxbXlYQ0NsVqFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIGw2TkFPM0s2OUNKNkhvQVNuNFVjQnl2UXhpQURpWkpwo2NpZNkgZVMyRjdFbUJ1SkcwN3NCSUJsdGtwcWNYVW5nSzZudG0",
-  feedback: "https://tgi-feedback-flow.lovable.app/store"
+  feedback: "https://tgi-feedback-flow.lovable.app/store",
+  hive: "https://tgifridays.elementsuite.net/portal.php?site=portal&page=spa"
 };
 
 // Built-in checklist tasks. days: 0 = Sunday ... 6 = Saturday. Leave days out for every day.
@@ -77,6 +78,7 @@ const ICONS = {
   resdiary: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
   deliverect: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
   tenkites: '<path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"/><path d="M6 17h12"/>',
+  hive: '<rect x="9" y="3" width="6" height="3" rx="1.5"/><rect x="7" y="7" width="10" height="3.5" rx="1.75"/><rect x="5" y="11.5" width="14" height="3.5" rx="1.75"/><rect x="4" y="16" width="16" height="4.5" rx="2.25"/><path d="M10.5 20.5v-1.5a1.5 1.5 0 0 1 3 0v1.5"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'
 };
 const ico = n => `<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg></span>`;
@@ -108,6 +110,7 @@ function viewHub() {
     ${linkCard("ResDiary", "review bookings and open tables", LINKS.resdiary, "resdiary")}
     ${linkCard("Deliverect", "manage delivery items", LINKS.deliverect, "deliverect")}
     ${linkCard("Tenkites menu recipes", "digital recipe cards", LINKS.tenkites, "tenkites")}
+    ${linkCard("Hive", "access Hive platform", LINKS.hive, "hive")}
     <a class="card tile" href="#codes-info-contacts">${ico("info")}<h3>Codes / info / contacts</h3><p>handy codes, information and contact details.</p></a>
   </div>`;
 }
