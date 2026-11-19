@@ -2,9 +2,21 @@
 const LINKS = {
   logit: "https://monitor.logit.co.uk/Check",
   audit: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=B3muhmsCDkyoYLuR5PyQHVf7pUYrD8xDswypxakT7kNUMEpDV1FYVzBSTlZWR05LQkRJREZEMjVPNS4u&origin=Invitation&channel=0",
-  resdiary: "https://login.resdiary.com/Security/Login/LandingPage?Username=highwycombe%40tgifridays.co.uk&RememberMe=True&ReturnUrl=%2FSecurity%2FLogin%2FRedirectToDefault&IsAccessUser=False&AccessMandatoryMigrationEnabled=False&UserId=0&AccessIdentityMandatoryProviderFeatureEnabled=False&UseSharedIntercomWorkspace=False&IsTurnstileEnabled=False&ShowSignInAsDifferentUser=False"
+  resdiary: "https://login.resdiary.com/Security/Login/LandingPage?Username=highwycombe%40tgifridays.co.uk&RememberMe=True&ReturnUrl=%2FSecurity%2FLogin%2FRedirectToDefault&IsAccessUser=False&AccessMandatoryMigrationEnabled=False&UserId=0&AccessIdentityMandatoryProviderFeatureEnabled=False&UseSharedIntercomWorkspace=False&IsTurnstileEnabled=False&ShowSignInAsDifferentUser=False",
+  deliveroo: "https://partner-hub.deliveroo.com/analytics?orgId=574737&dateRangePreset=last_7_days&branchId=86190",
+  ubereats: "https://merchants.ubereats.com/manager/home/6e1851e4-9cd6-535f-8d0e-0b2d68997190?dateRange=this_week",
+  tenkites: "https://menus.tenkites.com/tgifridayuk/digitalrecipecard02",
+  deliverect: "https://deliverect-enterprise.eu.auth0.com/u/login?state=hKFo2SByRVBKckdMUnl0cl9kcHBrVExOc2ZSSUoxbXlYQ0NsVqFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIGw2TkFPM0s2OUNKNkhvQVNuNFVjQnl2UXhpQURpWkpwo2NpZNkgZVMyRjdFbUJ1SkcwN3NCSUJsdGtwcWNYVW5nSzZudG0",
+  feedback: "https://tgi-feedback-flow.lovable.app/store"
 };
-const DELIVERY_DAYS = [1, 3, 5]; // Monday, Wednesday, Friday
+
+// Built-in checklist tasks. days: 0 = Sunday ... 6 = Saturday. Leave days out for every day.
+const DEFAULT_TASKS = [
+  { id: "am-logit", text: "AM logit checks" },
+  { id: "delivery", text: "Delivery check", days: [1, 3, 5], tag: "Mon, Wed, Fri" },
+  { id: "loomis", text: "Loomis cash collection", days: [2], tag: "Tuesdays" },
+  { id: "pm-logit", text: "PM logit checks" }
+];
 // ================================
 
 const KEY = "manager-hub-v1";
@@ -26,8 +38,10 @@ let viewMonth = parseKey(selected);
 viewMonth.setDate(1);
 
 function tasksFor(k) {
-  const list = [];
-  if (DELIVERY_DAYS.includes(parseKey(k).getDay())) list.push({ id: "delivery", text: "Delivery check", fixed: true });
+  const dow = parseKey(k).getDay();
+  const list = DEFAULT_TASKS
+    .filter(x => !x.days || x.days.includes(dow))
+    .map(x => ({ id: x.id, text: x.text, tag: x.tag, fixed: true }));
   return list.concat(state.tasks);
 }
 function progress(k) {
@@ -48,6 +62,12 @@ function linkCard(title, desc, url) {
     : `<div class="card off"><h3>${title}</h3><p>${desc} Link not set yet.</p></div>`;
 }
 
+function halfCard(title, url) {
+  return url
+    ? `<a class="card half" href="${esc(url)}" target="_blank" rel="noopener"><h3>${title}</h3></a>`
+    : `<div class="card half off"><h3>${title}</h3></div>`;
+}
+
 function viewHub() {
   return `<h2>Today’s hub</h2>
   <p class="sub">${new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</p>
@@ -56,6 +76,14 @@ function viewHub() {
     <a class="card" href="#checklist"><h3>Manager checklist</h3><p>Daily tasks, delivery checks and your calendar.</p></a>
     ${linkCard("Audit", "Open the audit form.", LINKS.audit)}
     ${linkCard("ResDiary", "Open the ResDiary login.", LINKS.resdiary)}
+    <div class="pair">
+      ${halfCard("Deliveroo refunds", LINKS.deliveroo)}
+      ${halfCard("Uber Eats refunds", LINKS.ubereats)}
+    </div>
+    ${linkCard("Tenkites menu recipes", "Open the digital recipe cards.", LINKS.tenkites)}
+    ${linkCard("Deliverect", "Open the Deliverect login.", LINKS.deliverect)}
+    ${linkCard("Feedback", "Open the feedback flow.", LINKS.feedback)}
+    <a class="card" href="#codes-info-contacts"><h3>Codes / info / contacts</h3><p>Handy codes, information and contact details.</p></a>
   </div>`;
 }
 
@@ -65,7 +93,7 @@ function viewChecklist() {
   const label = parseKey(selected).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   const items = t.map(x => `<li class="${d[x.id] ? "done" : ""}">
       <input type="checkbox" id="c-${x.id}" data-act="toggle" data-id="${x.id}" ${d[x.id] ? "checked" : ""}>
-      <label for="c-${x.id}">${esc(x.text)}${x.fixed ? '<span class="tag">Mon, Wed, Fri</span>' : ""}</label>
+      <label for="c-${x.id}">${esc(x.text)}${x.tag ? `<span class="tag">${x.tag}</span>` : ""}</label>
       ${x.fixed ? "" : `<button class="ghost" data-act="remove" data-id="${x.id}" aria-label="Remove ${esc(x.text)}">Remove</button>`}
     </li>`).join("");
 
@@ -120,13 +148,19 @@ function viewTimes() {
   </div>`;
 }
 
+function viewInfo() {
+  return `<h2>Codes / info / contacts</h2>
+  <p class="sub"><a class="lk" href="#">Back to hub</a></p>
+  <div class="panel"><p class="empty" style="margin:0">Nothing here yet. Codes, info and contacts will be added soon.</p></div>`;
+}
+
 const app = document.getElementById("app");
 const home = document.getElementById("homeLink");
 
 function render() {
   const r = location.hash.replace("#", "");
   home.hidden = !r;
-  app.innerHTML = r === "checklist" ? viewChecklist() : r === "logit-times" ? viewTimes() : viewHub();
+  app.innerHTML = r === "checklist" ? viewChecklist() : r === "logit-times" ? viewTimes() : r === "codes-info-contacts" ? viewInfo() : viewHub();
 }
 
 app.addEventListener("click", e => {
