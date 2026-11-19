@@ -87,7 +87,7 @@ function viewHub() {
   return `<h2>Today’s hub</h2>
   <p class="sub">${new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</p>
   <div class="cards">
-    <a class="card wide" href="#checklist">${ico("checklist")}<div><h3>Manager checklist</h3><p>Daily tasks, delivery checks and your calendar.</p></div></a>
+    <a class="card wide" href="#checklist">${ico("checklist")}<div><h3>Manager checklist</h3><p>personal checklist for daily tasks</p></div></a>
     ${linkCard("Logit check", "daily Logit checks", LINKS.logit, "logit")}
     ${linkCard("Audit", "daily BOH audit form", LINKS.audit, "audit")}
     <div class="pair">
