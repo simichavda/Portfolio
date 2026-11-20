@@ -29,12 +29,20 @@ const INFO = [
   { name: "Resdiary Login", value: "Fridays#1" },
   { name: "UberEats Manager", value: "Fridays#1" },
   { name: "Deliveroo Manager", value: "Fridays#11" },
+  { name: "Deliverect", value: "Fridays#11" },
   { name: "Expo Login", value: "2026" },
   { name: "Logit Login", value: "Fridays642!" }
 ];
 
+// Store contact details shown at the bottom of the Codes / info / contacts page.
+const CONTACTS = [
+  { label: "Store Phone Number", value: "0330 175 9255", href: "tel:03301759255" },
+  { label: "Store Email Address", value: "highwycombe@tgifridays.co.uk", href: "mailto:highwycombe@tgifridays.co.uk" },
+  { label: "Store Address", value: "Crest Rd, High Wycombe HP11 1UA" }
+];
+
 const KEY = "manager-hub-v1";
-let state = { tasks: [], done: {}, times: [] };
+let state = { tasks: [], done: {} };
 try {
   const s = localStorage.getItem(KEY);
   if (s) state = Object.assign(state, JSON.parse(s));
@@ -51,25 +59,26 @@ let selected = dkey(new Date());
 let viewMonth = parseKey(selected);
 viewMonth.setDate(1);
 
+const repeatTag = t => t.repeat === "once" ? "One-time" : t.repeat === "weekly" ? "Weekly" : "Daily";
+
 function tasksFor(k) {
   const dow = parseKey(k).getDay();
   const list = DEFAULT_TASKS
     .filter(x => !x.days || x.days.includes(dow))
     .map(x => ({ id: x.id, text: x.text, tag: x.tag, fixed: true }));
-  return list.concat(state.tasks);
+  // Custom tasks. Older tasks have no "repeat" or "start", so they stay daily on every date.
+  const custom = state.tasks.filter(t => {
+    if (t.repeat === "once") return t.date === k;
+    if (t.start && k < t.start) return false;
+    if (t.repeat === "weekly") return t.dow === dow;
+    return true;
+  }).map(t => ({ id: t.id, text: t.text, tag: repeatTag(t) }));
+  return list.concat(custom);
 }
 function progress(k) {
   const t = tasksFor(k), d = state.done[k] || {};
   return { n: t.filter(x => d[x.id]).length, total: t.length };
 }
-function fmt(t) { const [h, m] = t.split(":").map(Number); return ((h % 12) || 12) + ":" + pad(m) + " " + (h < 12 ? "AM" : "PM"); }
-function mins(t) { const [h, m] = t.split(":").map(Number); return h * 60 + m; }
-function statusOf(x) {
-  const now = new Date(), c = now.getHours() * 60 + now.getMinutes(), s = mins(x.start), e = mins(x.end);
-  if (e >= s) return c < s ? "up" : c <= e ? "open" : "closed";
-  return c >= s || c <= e ? "open" : "up"; // window that runs past midnight
-}
-
 // Icons (phone layout only). Simple line icons, drawn inline so no internet is needed.
 const ICONS = {
   checklist: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
@@ -141,15 +150,25 @@ function viewChecklist() {
   }
 
   return `<h2>Manager checklist</h2>
-  <p class="sub">${label}${isToday ? " (today)" : ""} &nbsp;|&nbsp; <a class="lk" href="#logit-times">Logit Time Check</a></p>
+  <p class="sub">${label}${isToday ? " (today)" : ""}</p>
   <div class="panel">
     <strong>${p.n} of ${p.total} done</strong>
     <div class="bar"><i style="width:${p.total ? (p.n / p.total * 100) : 0}%"></i></div>
     ${items ? `<ul class="list">${items}</ul>` : `<p class="empty">No tasks yet. Add your first one below.</p>`}
-    <div class="row"><input type="text" id="newTask" placeholder="Add a daily task" maxlength="120"><button data-act="add">Add task</button></div>
-    <p class="note">Tasks you add repeat every day. Check-offs are saved separately for each date.</p>
+    <div class="addtask">
+      <div class="addrow">
+        <input type="text" id="newTask" placeholder="Add a new task" maxlength="120" aria-label="New task">
+        <button class="addbtn" data-act="add">+ Add</button>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="How often">
+        <label><input type="radio" name="repeat" value="once" checked><span>One-time</span></label>
+        <label><input type="radio" name="repeat" value="daily"><span>Daily</span></label>
+        <label><input type="radio" name="repeat" value="weekly"><span>Weekly</span></label>
+      </div>
+    </div>
   </div>
   <div class="panel">
+    ${dayTargetsHTML(selected)}
     <div class="cal-head">
       <button class="ghost" data-act="prev" aria-label="Previous month">Prev</button>
       <strong>${viewMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</strong>
@@ -157,26 +176,6 @@ function viewChecklist() {
     </div>
     <div class="grid">${cells}</div>
     <p class="legend">Solid red: all tasks done. Tinted: some done. White ring: today.</p>
-  </div>`;
-}
-
-function viewTimes() {
-  const rows = state.times.slice().sort((a, b) => mins(a.start) - mins(b.start)).map(x => {
-    const s = statusOf(x), txt = { open: "Open now", up: "Upcoming", closed: "Closed" }[s];
-    return `<li><label style="cursor:default"><strong>${esc(x.name)}</strong><br><span class="note">${fmt(x.start)} to ${fmt(x.end)}</span></label>
-      <span class="status s-${s}">${txt}</span>
-      <button class="ghost" data-act="rmtime" data-id="${x.id}" aria-label="Remove ${esc(x.name)}">Remove</button></li>`;
-  }).join("");
-  return `<h2>Logit Time Check</h2>
-  <p class="sub"><a class="lk" href="#checklist">Back to checklist</a></p>
-  <div class="panel">
-    ${rows ? `<ul class="list">${rows}</ul>` : `<p class="empty">No log checks yet. Add one with its submission window.</p>`}
-    <div class="row"><input type="text" id="tName" placeholder="Log check name" maxlength="80"></div>
-    <div class="row" style="margin-top:8px">
-      <label class="note" style="flex:1;min-width:120px">Window starts<br><input type="time" id="tStart" style="width:100%"></label>
-      <label class="note" style="flex:1;min-width:120px">Window ends<br><input type="time" id="tEnd" style="width:100%"></label>
-    </div>
-    <div class="row" style="margin-top:10px"><button data-act="addtime">Add log check</button></div>
   </div>`;
 }
 
@@ -195,6 +194,13 @@ function viewInfo() {
     <input type="text" id="infoSearch" placeholder="Search codes and info" autocomplete="off" aria-label="Search codes and info" style="width:100%">
     <table class="info"><tbody>${rows}</tbody></table>
     <p class="empty" id="noMatch" hidden style="margin:12px 0 0">No matches.</p>
+  </div>
+  <div class="panel">
+    <h3 style="margin:0 0 4px;font-size:1.05rem">Store contact details</h3>
+    <table class="info"><tbody>${CONTACTS.map(c => `<tr>
+      <td class="nm">${esc(c.label)}</td>
+      <td>${c.href ? `<a href="${esc(c.href)}">${esc(c.value)}</a>` : esc(c.value)}</td>
+    </tr>`).join("")}</tbody></table>
   </div>`;
 }
 
@@ -217,6 +223,7 @@ async function copyText(text, btn) {
 const METRICS_URL = "data/metrics.csv";
 const METRICS_KEY = "manager-hub-metrics-csv";
 let metricsMap = null;      // date (YYYY-MM-DD) -> { asph, sales, covers }
+let metricsText = "";
 let metricsSource = "none"; // "file" = read from the CSV, "cache"/"picked" = remembered copy, "none" = nothing yet
 
 function parseCSV(text) {
@@ -263,21 +270,32 @@ function ingestMetrics(text, source) {
   metricsMap = map;
   metricsSource = source;
 }
+function setMetrics(text, source) {
+  const changed = text !== metricsText || source !== metricsSource;
+  metricsText = text;
+  ingestMetrics(text, source);
+  return changed;
+}
+function refreshView() { // only redraw pages that show the figures, and only if they changed
+  const r = location.hash.replace("#", "");
+  if (r === "" || r === "checklist") render();
+}
 async function loadMetrics() {
+  let changed = false;
   try {
     const r = await fetch(METRICS_URL + "?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error(r.status);
     const text = await r.text();
-    ingestMetrics(text, "file");
+    changed = setMetrics(text, "file");
     try { localStorage.setItem(METRICS_KEY, text); } catch (e) {}
   } catch (e) {
     if (metricsSource !== "file") {
       let cached = null;
       try { cached = localStorage.getItem(METRICS_KEY); } catch (_) {}
-      if (cached) ingestMetrics(cached, "cache");
+      if (cached) changed = setMetrics(cached, "cache");
     }
   }
-  if (!location.hash.replace("#", "")) render();
+  if (changed) refreshView();
 }
 function pickMetricsFile() {
   const f = document.createElement("input");
@@ -289,19 +307,24 @@ function pickMetricsFile() {
     const rd = new FileReader();
     rd.onload = () => {
       const text = String(rd.result);
-      ingestMetrics(text, "picked");
+      setMetrics(text, "picked");
       try { localStorage.setItem(METRICS_KEY, text); } catch (e) {}
-      if (!location.hash.replace("#", "")) render();
+      refreshView();
     };
     rd.readAsText(file);
   };
   f.click();
 }
-function metricsHTML() {
-  const m = metricsMap && metricsMap[dkey(new Date())];
+function metricCards(m) {
   const gbp2 = v => v == null ? "—" : "£" + v.toFixed(2);
   const gbp0 = v => v == null ? "—" : "£" + Math.round(v).toLocaleString("en-GB");
   const num = v => v == null ? "—" : Math.round(v).toLocaleString("en-GB");
+  return `<div class="card metric"><div class="lbl">ASPH</div><div class="val">${gbp2(m && m.asph)}</div></div>
+    <div class="card metric"><div class="lbl">Sales</div><div class="val">${gbp0(m && m.sales)}</div></div>
+    <div class="card metric"><div class="lbl">Covers</div><div class="val">${num(m && m.covers)}</div></div>`;
+}
+function metricsHTML() {
+  const m = metricsMap && metricsMap[dkey(new Date())];
   let note = "";
   if (metricsSource !== "file") {
     note = (metricsSource === "none"
@@ -312,12 +335,16 @@ function metricsHTML() {
     note = "No figures for today in the CSV yet.";
   }
   return `<h3 class="subhead">Key Metrics and Targets</h3>
-  <div class="metrics">
-    <div class="card metric"><div class="lbl">ASPH</div><div class="val">${gbp2(m && m.asph)}</div></div>
-    <div class="card metric"><div class="lbl">Sales</div><div class="val">${gbp0(m && m.sales)}</div></div>
-    <div class="card metric"><div class="lbl">Covers</div><div class="val">${num(m && m.covers)}</div></div>
-  </div>
+  <div class="metrics">${metricCards(m)}</div>
   ${note ? `<p class="note metric-note">${note}</p>` : ""}`;
+}
+function dayTargetsHTML(k) {
+  const m = metricsMap && metricsMap[k];
+  const title = parseKey(k).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+  const body = m
+    ? `<div class="metrics small">${metricCards(m)}</div>`
+    : `<p class="note" style="margin:0">${metricsMap ? "No figures for this day in the CSV." : "Figures haven’t loaded yet. Check the hub page."}</p>`;
+  return `<div class="day-targets"><h4>Targets for ${title}</h4>${body}</div>`;
 }
 
 const app = document.getElementById("app");
@@ -326,7 +353,7 @@ const home = document.getElementById("homeLink");
 function render() {
   const r = location.hash.replace("#", "");
   home.hidden = !r;
-  app.innerHTML = r === "checklist" ? viewChecklist() : r === "logit-times" ? viewTimes() : r === "codes-info-contacts" ? viewInfo() : viewHub();
+  app.innerHTML = r === "checklist" ? viewChecklist() : r === "codes-info-contacts" ? viewInfo() : viewHub();
 }
 
 app.addEventListener("click", e => {
@@ -344,7 +371,8 @@ app.addEventListener("click", e => {
   } else if (a === "add") {
     const v = document.getElementById("newTask").value.trim();
     if (!v) return;
-    state.tasks.push({ id: uid(), text: v });
+    const repeat = document.querySelector('input[name="repeat"]:checked').value; // once (default), daily or weekly
+    state.tasks.push({ id: uid(), text: v, repeat, start: selected, date: selected, dow: parseKey(selected).getDay() });
     save();
   } else if (a === "pick") {
     selected = b.dataset.k;
@@ -352,16 +380,6 @@ app.addEventListener("click", e => {
     viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1);
   } else if (a === "next") {
     viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1);
-  } else if (a === "addtime") {
-    const name = document.getElementById("tName").value.trim();
-    const s = document.getElementById("tStart").value;
-    const en = document.getElementById("tEnd").value;
-    if (!name || !s || !en) return;
-    state.times.push({ id: uid(), name, start: s, end: en });
-    save();
-  } else if (a === "rmtime") {
-    state.times = state.times.filter(x => x.id !== b.dataset.id);
-    save();
   }
   render();
 });
@@ -396,8 +414,6 @@ setInterval(() => {
     selected = t;
     viewMonth = parseKey(t);
     viewMonth.setDate(1);
-    render();
-  } else if (location.hash === "#logit-times") {
     render();
   }
 }, 30000);
