@@ -6,7 +6,7 @@ const LINKS = {
   deliveroo: "https://partner-hub.deliveroo.com/analytics?orgId=574737&dateRangePreset=last_7_days&branchId=86190",
   ubereats: "https://merchants.ubereats.com/manager/home/6e1851e4-9cd6-535f-8d0e-0b2d68997190?dateRange=this_week",
   tenkites: "https://menus.tenkites.com/tgifridayuk/digitalrecipecard02",
-  deliverect: "https://deliverect-enterprise.eu.auth0.com/u/login?state=hKFo2SByRVBKckdMUnl0cl9kcHBrVExOc2ZSSUoxbXlYQ0NsVqFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIGw2TkFPM0s2OUNKNkhvQVNuNFVjQnl2UXhpQURpWkpwo2NpZNkgZVMyRjdFbUJ1SkcwN3NCSUJsdGtwcWNYVW5nSzZudG0",
+  deliverect: "https://enterprise.deliverect.com/home",
   feedback: "https://tgi-feedback-flow.lovable.app/store",
   hive: "https://tgifridays.elementsuite.net/portal.php?site=portal&page=spa"
 };
