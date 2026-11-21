@@ -410,6 +410,61 @@ async function loadRota() {
 }
 function loadData() { loadMetrics(); loadRota(); }
 
+// ----- Word download (builds a real .docx in the browser, no libraries needed) -----
+function crc32(buf) {
+  if (!crc32.t) {
+    crc32.t = [];
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; crc32.t[n] = c; }
+  }
+  let crc = -1;
+  for (let i = 0; i < buf.length; i++) crc = crc32.t[(crc ^ buf[i]) & 255] ^ (crc >>> 8);
+  return (crc ^ -1) >>> 0;
+}
+function makeZip(files) { // files: [{ name, text }] stored without compression
+  const enc = new TextEncoder(), parts = [], central = [];
+  const u16 = n => [n & 255, (n >> 8) & 255];
+  const u32 = n => [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255];
+  let offset = 0;
+  files.forEach(f => {
+    const name = enc.encode(f.name), data = enc.encode(f.text), crc = crc32(data), size = data.length;
+    const local = new Uint8Array([0x50, 0x4b, 3, 4, ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(size), ...u32(size), ...u16(name.length), ...u16(0)]);
+    central.push(new Uint8Array([0x50, 0x4b, 1, 2, ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(size), ...u32(size), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(offset)]), name);
+    parts.push(local, name, data);
+    offset += local.length + name.length + size;
+  });
+  const cdSize = central.reduce((n, c) => n + c.length, 0);
+  const end = new Uint8Array([0x50, 0x4b, 5, 6, ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdSize), ...u32(offset), ...u16(0)]);
+  return new Blob([...parts, ...central, end], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+}
+// Layout: font size 12, name then "times role" directly underneath, 1.15 line spacing, small gap after each entry.
+function buildRotaDocx(rows) {
+  const sorted = rows.slice().sort((a, b) => a.name.localeCompare(b.name) || (timeMins(a.start) ?? 1e9) - (timeMins(b.start) ?? 1e9));
+  const run = t => `<w:r><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Aptos"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
+  const para = (t, after, keep) => `<w:p><w:pPr>${keep ? "<w:keepNext/>" : ""}<w:spacing w:after="${after}" w:line="276" w:lineRule="auto"/></w:pPr>${run(t)}</w:p>`;
+  const body = sorted.map(r => {
+    const role = ROLE_ORDER.find(x => x.toLowerCase() === r.role.toLowerCase()) || r.role;
+    return para(r.name, 0, true) + para(fmtTime(r.start) + (r.end ? " - " + fmtTime(r.end) : "") + " " + role, 160, false);
+  }).join("");
+  const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  return makeZip([
+    { name: "[Content_Types].xml", text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>' },
+    { name: "_rels/.rels", text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
+    { name: "word/document.xml", text: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${W}><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>` }
+  ]);
+}
+function downloadRotaDoc() {
+  const rows = (rotaMap && rotaMap[rotaDate]) || [];
+  if (!rows.length) return;
+  const label = parseKey(rotaDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).replace(/,/g, "");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(buildRotaDocx(rows));
+  a.download = "Rota - " + label + ".docx";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
 function viewRota() {
   const d = parseKey(rotaDate), todayK = dkey(new Date());
   const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
@@ -449,7 +504,7 @@ function viewRota() {
       <button class="ghost" data-act="rnext" aria-label="Next week">Next</button>
     </div>
     <div class="weekstrip">${strip}</div>
-    <div class="rota-day"><h3>${dayLabel}</h3>${rotaDate !== todayK ? '<button class="ghost" data-act="rtoday">Today</button>' : ""}</div>
+    <div class="rota-day"><h3>${dayLabel}</h3><div class="rota-btns">${rotaDate !== todayK ? '<button class="ghost" data-act="rtoday">Today</button>' : ""}${rows.length ? '<button class="ghost" data-act="rotadoc">Download Word doc</button>' : ""}</div></div>
     ${body ? `<p class="note rota-count"><b>${cards.length}</b> team members scheduled</p>` : ""}
     ${body || `<p class="empty" style="margin:0">${empty}</p>`}
     ${rotaState === "cache" ? '<p class="note" style="margin:12px 0 0">Offline: showing the last rota that loaded.</p>' : ""}
@@ -471,6 +526,7 @@ app.addEventListener("click", e => {
   const a = b.dataset.act;
   if (a === "copy") { copyText(b.dataset.text, b); return; }
   if (a === "loadcsv") { pickMetricsFile(); return; }
+  if (a === "rotadoc") { downloadRotaDoc(); return; }
   if (a === "toggle") {
     (state.done[selected] = state.done[selected] || {})[b.dataset.id] = b.checked;
     save();
