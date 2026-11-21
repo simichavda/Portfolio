@@ -430,17 +430,10 @@ function viewRota() {
   });
   const order = ROLE_ORDER.filter(x => groups[x]).concat(Object.keys(groups).filter(x => !ROLE_ORDER.includes(x)));
   const byTime = (a, b) => (timeMins(a.start) ?? 1e9) - (timeMins(b.start) ?? 1e9) || a.name.localeCompare(b.name);
-  // One line per person within a role. Split shifts (e.g. 11:00 – 16:00, 17:00 – 22:00) are joined on the same line.
-  const people = list => {
-    const by = {};
-    list.forEach(r => { const k = r.name.toLowerCase(); (by[k] = by[k] || { name: r.name, shifts: [] }).shifts.push(r); });
-    return Object.values(by).map(p => { p.shifts.sort(byTime); return p; }).sort((x, y) => byTime(x.shifts[0], y.shifts[0]));
-  };
-  // One card per person, in role order then start time. Each card: name, then times and role.
-  const cards = order.flatMap(role => people(groups[role]).map(p => ({ role, p })));
-  const body = cards.map(({ role, p }) =>
-    `<div class="shift"><div class="who">${esc(p.name)}</div><div class="when"><i class="dot" style="background:${ROLE_COLORS[role] || "#888"}"></i>${p.shifts.map((r, i, arr) =>
-      `<span class="seg">${esc(fmtTime(r.start))}${r.end ? " - " + esc(fmtTime(r.end)) : ""}${i < arr.length - 1 ? "," : ""}</span>`).join(" ")} <span>${esc(role)}</span></div></div>`).join("");
+  // One card per shift (split shifts show as separate cards), in role order then start time.
+  const cards = order.flatMap(role => groups[role].slice().sort(byTime).map(r => ({ role, r })));
+  const body = cards.map(({ role, r }) =>
+    `<div class="shift"><div class="who">${esc(r.name)}</div><div class="when"><i class="dot" style="background:${ROLE_COLORS[role] || "#888"}"></i><span class="seg">${esc(fmtTime(r.start))}${r.end ? " - " + esc(fmtTime(r.end)) : ""}</span> <span>${esc(role)}</span></div></div>`).join("");
 
   const empty = rotaState === "loading" ? "Loading rota…"
     : rotaState === "error" ? "Couldn’t load data/rota.csv."
