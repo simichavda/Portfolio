@@ -213,7 +213,7 @@ table.info a { color: var(--red-bright); }
 .shift { background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-top: 8px; }
 .shift .who { font-weight: 700; }
 .shift .when { margin-top: 3px; color: var(--muted); font-size: 0.92rem; font-variant-numeric: tabular-nums; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; }
-.shift .seg { white-space: nowrap; }
+.shift .tm { white-space: nowrap; }
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
 
 .rota-day { flex-wrap: wrap; }
