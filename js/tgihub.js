@@ -357,6 +357,7 @@ const ROTA_URL = "data/rota.csv";
 const ROTA_KEY = "manager-hub-rota-csv";
 // Roles are shown in this order. Roles with nobody rota’d that day are hidden.
 const ROLE_ORDER = ["MOD", "Kit SL", "Chef", "Dish", "Bar", "Host", "SA", "WW", "Cleaner", "Training"];
+const ROLE_COLORS = { "MOD": "#f59e0b", "Kit SL": "#0ea5e9", "Chef": "#3b82f6", "Dish": "#ec4899", "Bar": "#b5b524", "Host": "#84cc16", "SA": "#fb7185", "WW": "#22c55e", "Cleaner": "#2dd4bf", "Training": "#a855f7" };
 let rotaMap = null;        // date (YYYY-MM-DD) -> [{ name, role, start, end }]
 let rotaText = "";
 let rotaState = "loading"; // "loading", "ok", "cache" (remembered copy) or "error"
@@ -435,12 +436,11 @@ function viewRota() {
     list.forEach(r => { const k = r.name.toLowerCase(); (by[k] = by[k] || { name: r.name, shifts: [] }).shifts.push(r); });
     return Object.values(by).map(p => { p.shifts.sort(byTime); return p; }).sort((x, y) => byTime(x.shifts[0], y.shifts[0]));
   };
-  const body = order.map(role => {
-    const list = people(groups[role]);
-    return `<div class="role"><h4>${esc(role)} <span>${list.length}</span></h4>${list.map(p =>
-      `<div class="shift"><span class="who">${esc(p.name)}</span><span class="when">${p.shifts.map((r, i, arr) =>
-        `<span class="seg">${esc(fmtTime(r.start))}${r.end ? " – " + esc(fmtTime(r.end)) : ""}${i < arr.length - 1 ? "," : ""}</span>`).join(" ")}</span></div>`).join("")}</div>`;
-  }).join("");
+  // One card per person, in role order then start time. Each card: name, then times and role.
+  const cards = order.flatMap(role => people(groups[role]).map(p => ({ role, p })));
+  const body = cards.map(({ role, p }) =>
+    `<div class="shift"><div class="who">${esc(p.name)}</div><div class="when"><i class="dot" style="background:${ROLE_COLORS[role] || "#888"}"></i>${p.shifts.map((r, i, arr) =>
+      `<span class="seg">${esc(fmtTime(r.start))}${r.end ? " - " + esc(fmtTime(r.end)) : ""}${i < arr.length - 1 ? "," : ""}</span>`).join(" ")} <span>${esc(role)}</span></div></div>`).join("");
 
   const empty = rotaState === "loading" ? "Loading rota…"
     : rotaState === "error" ? "Couldn’t load data/rota.csv."
@@ -457,6 +457,7 @@ function viewRota() {
     </div>
     <div class="weekstrip">${strip}</div>
     <div class="rota-day"><h3>${dayLabel}</h3>${rotaDate !== todayK ? '<button class="ghost" data-act="rtoday">Today</button>' : ""}</div>
+    ${body ? `<p class="note rota-count"><b>${cards.length}</b> team members scheduled</p>` : ""}
     ${body || `<p class="empty" style="margin:0">${empty}</p>`}
     ${rotaState === "cache" ? '<p class="note" style="margin:12px 0 0">Offline: showing the last rota that loaded.</p>' : ""}
   </div>`;
