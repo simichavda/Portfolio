@@ -436,11 +436,12 @@ function makeZip(files) { // files: [{ name, text }] stored without compression
   const end = new Uint8Array([0x50, 0x4b, 5, 6, ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdSize), ...u32(offset), ...u16(0)]);
   return new Blob([...parts, ...central, end], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
 }
-// Layout: font size 12, name then "times role" directly underneath, 1.15 line spacing, small gap after each entry.
+// Layout: light grey background, role order as on the page, font size 12, name then "times role" directly underneath, 1.15 line spacing, small gap after each entry.
 function buildRotaDocx(rows) {
-  const sorted = rows.slice().sort((a, b) => a.name.localeCompare(b.name) || (timeMins(a.start) ?? 1e9) - (timeMins(b.start) ?? 1e9));
+  const roleIdx = r => { const i = ROLE_ORDER.findIndex(x => x.toLowerCase() === r.role.toLowerCase()); return i < 0 ? ROLE_ORDER.length : i; };
+  const sorted = rows.slice().sort((a, b) => roleIdx(a) - roleIdx(b) || a.role.localeCompare(b.role) || (timeMins(a.start) ?? 1e9) - (timeMins(b.start) ?? 1e9) || a.name.localeCompare(b.name));
   const run = t => `<w:r><w:rPr><w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:cs="Aptos"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
-  const para = (t, after, keep) => `<w:p><w:pPr>${keep ? "<w:keepNext/>" : ""}<w:spacing w:after="${after}" w:line="276" w:lineRule="auto"/></w:pPr>${run(t)}</w:p>`;
+  const para = (t, after, keep) => `<w:p><w:pPr>${keep ? "<w:keepNext/>" : ""}<w:shd w:val="clear" w:color="auto" w:fill="D9D9D9"/><w:spacing w:after="${after}" w:line="276" w:lineRule="auto"/></w:pPr>${run(t)}</w:p>`;
   const body = sorted.map(r => {
     const role = ROLE_ORDER.find(x => x.toLowerCase() === r.role.toLowerCase()) || r.role;
     return para(r.name, 0, true) + para(fmtTime(r.start) + (r.end ? " - " + fmtTime(r.end) : "") + " " + role, 160, false);
@@ -488,7 +489,7 @@ function viewRota() {
   // One card per shift (split shifts show as separate cards), in role order then start time.
   const cards = order.flatMap(role => groups[role].slice().sort(byTime).map(r => ({ role, r })));
   const body = cards.map(({ role, r }) =>
-    `<div class="shift"><div class="who">${esc(r.name)}</div><div class="when"><i class="dot" style="background:${ROLE_COLORS[role] || "#888"}"></i><span class="seg">${esc(fmtTime(r.start))}${r.end ? " - " + esc(fmtTime(r.end)) : ""}</span> <span>${esc(role)}</span></div></div>`).join("");
+    `<div class="shift"><div class="who">${esc(r.name)}</div><div class="when"><i class="dot" style="background:${ROLE_COLORS[role] || "#888"}"></i><span class="tm">${esc(fmtTime(r.start))}${r.end ? " - " + esc(fmtTime(r.end)) : ""}</span> <span>${esc(role)}</span></div></div>`).join("");
 
   const empty = rotaState === "loading" ? "Loading rota…"
     : rotaState === "error" ? "Couldn’t load data/rota.csv."
