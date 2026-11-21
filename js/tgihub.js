@@ -91,6 +91,7 @@ const ICONS = {
   deliverect: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
   tenkites: '<path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"/><path d="M6 17h12"/>',
   hive: '<rect x="9" y="3" width="6" height="3" rx="1.5"/><rect x="7" y="7" width="10" height="3.5" rx="1.75"/><rect x="5" y="11.5" width="14" height="3.5" rx="1.75"/><rect x="4" y="16" width="16" height="4.5" rx="2.25"/><path d="M10.5 20.5v-1.5a1.5 1.5 0 0 1 3 0v1.5"/>',
+  rota: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'
 };
 const ico = n => `<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg></span>`;
@@ -125,6 +126,10 @@ function viewHub() {
     ${linkCard("Tenkites menu recipes", "digital recipe cards", LINKS.tenkites, "tenkites")}
     ${linkCard("Hive", "access Hive platform", LINKS.hive, "hive")}
     <a class="card tile" href="#codes-info-contacts">${ico("info")}<h3>Codes / info / contacts</h3><p>handy codes, information and contact details.</p></a>
+  </div>
+  <h3 class="subhead">Rotas</h3>
+  <div class="cards rota-sec">
+    <a class="card wide" href="#rota">${ico("rota")}<div><h3>Rota</h3><p>this week’s rota, upcoming weeks and past rotas</p></div></a>
   </div>`;
 }
 
@@ -347,13 +352,123 @@ function dayTargetsHTML(k) {
   return `<div class="day-targets"><h4>Targets for ${title}</h4>${body}</div>`;
 }
 
+// ===== Rota (read from data/rota.csv: Date, Name, Role, Start, End. One row per shift) =====
+const ROTA_URL = "data/rota.csv";
+const ROTA_KEY = "manager-hub-rota-csv";
+// Roles are shown in this order. Roles with nobody rota’d that day are hidden.
+const ROLE_ORDER = ["MOD", "Kit SL", "Chef", "Dish", "Bar", "Host", "SA", "WW", "Cleaner", "Training"];
+let rotaMap = null;        // date (YYYY-MM-DD) -> [{ name, role, start, end }]
+let rotaText = "";
+let rotaState = "loading"; // "loading", "ok", "cache" (remembered copy) or "error"
+let rotaDate = dkey(new Date());
+
+function timeMins(s) {
+  const m = String(s || "").trim().match(/^(\d{1,2})(?:[:.](\d{2}))?(?::\d{2})?\s*(am|pm)?$/i);
+  if (!m) return null;
+  let h = +m[1];
+  const min = m[2] ? +m[2] : 0, ap = (m[3] || "").toLowerCase();
+  if (ap === "pm" && h < 12) h += 12;
+  if (ap === "am" && h === 12) h = 0;
+  return h > 24 || min > 59 ? null : h * 60 + min;
+}
+const fmtTime = s => { const t = timeMins(s); return t == null ? String(s || "") : pad(Math.floor(t / 60) % 24) + ":" + pad(t % 60); };
+
+function ingestRota(text) {
+  const rows = parseCSV(text);
+  if (!rows.length) { rotaMap = {}; return; }
+  const head = rows[0].map(x => x.trim().toLowerCase());
+  const hasHead = head.includes("date") || head.includes("name") || head.includes("role");
+  const col = (name, fallback) => { const i = head.findIndex(h => h.startsWith(name)); return hasHead && i >= 0 ? i : fallback; };
+  const iD = col("date", 0), iN = col("name", 1), iR = col("role", 2), iS = col("start", 3), iE = col("end", 4);
+  const map = {};
+  rows.slice(hasHead ? 1 : 0).forEach(r => {
+    const k = parseDateKey(r[iD]), name = (r[iN] || "").trim(), role = (r[iR] || "").trim();
+    if (!k || !name || !role) return;
+    (map[k] = map[k] || []).push({ name, role, start: (r[iS] || "").trim(), end: (r[iE] || "").trim() });
+  });
+  rotaMap = map;
+}
+async function loadRota() {
+  let changed = false;
+  try {
+    const r = await fetch(ROTA_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const text = await r.text();
+    if (text !== rotaText || rotaState !== "ok") { rotaText = text; ingestRota(text); rotaState = "ok"; changed = true; }
+    try { localStorage.setItem(ROTA_KEY, text); } catch (e) {}
+  } catch (e) {
+    if (rotaState !== "ok") {
+      let cached = null;
+      try { cached = localStorage.getItem(ROTA_KEY); } catch (_) {}
+      if (cached) {
+        if (cached !== rotaText || rotaState !== "cache") { rotaText = cached; ingestRota(cached); rotaState = "cache"; changed = true; }
+      } else if (rotaState !== "error") { rotaState = "error"; changed = true; }
+    }
+  }
+  if (changed && location.hash === "#rota") render();
+}
+function loadData() { loadMetrics(); loadRota(); }
+
+function viewRota() {
+  const d = parseKey(rotaDate), todayK = dkey(new Date());
+  const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+  const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+  let strip = "";
+  for (let i = 0; i < 7; i++) {
+    const dd = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i), k = dkey(dd);
+    const has = rotaMap && rotaMap[k] && rotaMap[k].length;
+    strip += `<button class="wk ${k === rotaDate ? "sel" : ""} ${k === todayK ? "today" : ""} ${has ? "has" : ""}" data-act="rpick" data-k="${k}" aria-label="${dd.toDateString()}"><span>${dd.toLocaleDateString(undefined, { weekday: "short" })}</span><b>${dd.getDate()}</b></button>`;
+  }
+  const range = mon.toLocaleDateString(undefined, { day: "numeric", month: "short" }) + " – " + sun.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+  const rows = (rotaMap && rotaMap[rotaDate]) || [];
+  const groups = {};
+  rows.forEach(r => {
+    const role = ROLE_ORDER.find(x => x.toLowerCase() === r.role.toLowerCase()) || r.role;
+    (groups[role] = groups[role] || []).push(r);
+  });
+  const order = ROLE_ORDER.filter(x => groups[x]).concat(Object.keys(groups).filter(x => !ROLE_ORDER.includes(x)));
+  const byTime = (a, b) => (timeMins(a.start) ?? 1e9) - (timeMins(b.start) ?? 1e9) || a.name.localeCompare(b.name);
+  // One line per person within a role. Split shifts (e.g. 11:00 – 16:00, 17:00 – 22:00) are joined on the same line.
+  const people = list => {
+    const by = {};
+    list.forEach(r => { const k = r.name.toLowerCase(); (by[k] = by[k] || { name: r.name, shifts: [] }).shifts.push(r); });
+    return Object.values(by).map(p => { p.shifts.sort(byTime); return p; }).sort((x, y) => byTime(x.shifts[0], y.shifts[0]));
+  };
+  const body = order.map(role => {
+    const list = people(groups[role]);
+    return `<div class="role"><h4>${esc(role)} <span>${list.length}</span></h4>${list.map(p =>
+      `<div class="shift"><span class="who">${esc(p.name)}</span><span class="when">${p.shifts.map((r, i, arr) =>
+        `<span class="seg">${esc(fmtTime(r.start))}${r.end ? " – " + esc(fmtTime(r.end)) : ""}${i < arr.length - 1 ? "," : ""}</span>`).join(" ")}</span></div>`).join("")}</div>`;
+  }).join("");
+
+  const empty = rotaState === "loading" ? "Loading rota…"
+    : rotaState === "error" ? "Couldn’t load data/rota.csv."
+    : "No one is rota’d for this day.";
+  const dayLabel = d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  return `<h2>Rota</h2>
+  <p class="sub"><a class="lk" href="#">Back to hub</a></p>
+  <div class="panel">
+    <div class="rota-nav">
+      <button class="ghost" data-act="rprev" aria-label="Previous week">Prev</button>
+      <strong>${range}</strong>
+      <button class="ghost" data-act="rnext" aria-label="Next week">Next</button>
+    </div>
+    <div class="weekstrip">${strip}</div>
+    <div class="rota-day"><h3>${dayLabel}</h3>${rotaDate !== todayK ? '<button class="ghost" data-act="rtoday">Today</button>' : ""}</div>
+    ${body || `<p class="empty" style="margin:0">${empty}</p>`}
+    ${rotaState === "cache" ? '<p class="note" style="margin:12px 0 0">Offline: showing the last rota that loaded.</p>' : ""}
+  </div>`;
+}
+
 const app = document.getElementById("app");
 const home = document.getElementById("homeLink");
 
 function render() {
   const r = location.hash.replace("#", "");
   home.hidden = !r;
-  app.innerHTML = r === "checklist" ? viewChecklist() : r === "codes-info-contacts" ? viewInfo() : viewHub();
+  app.innerHTML = r === "checklist" ? viewChecklist() : r === "codes-info-contacts" ? viewInfo() : r === "rota" ? viewRota() : viewHub();
 }
 
 app.addEventListener("click", e => {
@@ -374,6 +489,13 @@ app.addEventListener("click", e => {
     const repeat = document.querySelector('input[name="repeat"]:checked').value; // once (default), daily or weekly
     state.tasks.push({ id: uid(), text: v, repeat, start: selected, date: selected, dow: parseKey(selected).getDay() });
     save();
+  } else if (a === "rpick") {
+    rotaDate = b.dataset.k;
+  } else if (a === "rprev" || a === "rnext") {
+    const d = parseKey(rotaDate);
+    rotaDate = dkey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + (a === "rnext" ? 7 : -7)));
+  } else if (a === "rtoday") {
+    rotaDate = dkey(new Date());
   } else if (a === "pick") {
     selected = b.dataset.k;
   } else if (a === "prev") {
@@ -412,6 +534,7 @@ setInterval(() => {
   if (t !== lastDay) {
     lastDay = t;
     selected = t;
+    rotaDate = t;
     viewMonth = parseKey(t);
     viewMonth.setDate(1);
     render();
@@ -423,6 +546,6 @@ const yr = document.getElementById("year");
 if (yr) yr.textContent = new Date().getFullYear();
 
 render();
-loadMetrics();
-setInterval(loadMetrics, 5 * 60 * 1000); // pick up CSV edits every 5 minutes
-document.addEventListener("visibilitychange", () => { if (!document.hidden) loadMetrics(); });
+loadData();
+setInterval(loadData, 5 * 60 * 1000); // pick up CSV edits every 5 minutes
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadData(); });
