@@ -192,3 +192,27 @@ table.info a { color: var(--red-bright); }
 .seg span { display: block; text-align: center; padding: 8px 6px; border-radius: 18px; font-size: 0.9rem; color: var(--muted); }
 .seg input:checked + span { background: var(--red); color: #fff; }
 .seg input:focus-visible + span { outline: 2px solid var(--red-bright); outline-offset: 2px; }
+
+/* Rota section on the hub, and the rota page */
+.cards.rota-sec { margin-top: 0; }
+.rota-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.rota-nav strong { text-align: center; font-size: 0.95rem; }
+.weekstrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 16px; }
+.wk { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 6px; border: 1px solid var(--line); background: var(--field); color: var(--text); border-radius: 8px; }
+.wk span { font-size: 0.72rem; color: var(--muted); }
+.wk b { font-size: 1rem; }
+.wk::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: transparent; }
+.wk.has::after { background: var(--red-bright); }
+.wk.sel { background: var(--red); border-color: var(--red); color: #fff; }
+.wk.sel span { color: #fff; }
+.wk.sel.has::after { background: #fff; }
+.wk.today { box-shadow: 0 0 0 2px #fff inset; }
+.rota-day { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.rota-day h3 { margin: 0; font-size: 1.05rem; }
+.role { padding: 12px 0; border-top: 1px solid var(--line); }
+.role:first-of-type { border-top: 0; padding-top: 0; }
+.role h4 { margin: 0 0 6px; font-size: 0.8rem; letter-spacing: 0.8px; text-transform: uppercase; color: var(--red-bright); }
+.role h4 span { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.shift { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; }
+.shift .when { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.shift .seg { white-space: nowrap; }
