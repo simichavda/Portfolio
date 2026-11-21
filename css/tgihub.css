@@ -209,10 +209,9 @@ table.info a { color: var(--red-bright); }
 .wk.today { box-shadow: 0 0 0 2px #fff inset; }
 .rota-day { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
 .rota-day h3 { margin: 0; font-size: 1.05rem; }
-.role { padding: 12px 0; border-top: 1px solid var(--line); }
-.role:first-of-type { border-top: 0; padding-top: 0; }
-.role h4 { margin: 0 0 6px; font-size: 0.8rem; letter-spacing: 0.8px; text-transform: uppercase; color: var(--red-bright); }
-.role h4 span { color: var(--muted); font-weight: 400; margin-left: 4px; }
-.shift { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; }
-.shift .when { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.rota-count { margin: 0 0 4px; }
+.shift { background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-top: 8px; }
+.shift .who { font-weight: 700; }
+.shift .when { margin-top: 3px; color: var(--muted); font-size: 0.92rem; font-variant-numeric: tabular-nums; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; }
 .shift .seg { white-space: nowrap; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
